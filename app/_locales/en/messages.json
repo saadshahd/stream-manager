@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "stream manger",
+    "message": "Stream manger",
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "Chrome extension to mange soundcloud stream",
+    "message": "Chrome extension to manage soundcloud stream",
     "description": "The description of the application"
   }
 }

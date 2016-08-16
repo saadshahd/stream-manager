@@ -1,5 +1,5 @@
 {
-  "name": "stream-manger",
+  "name": "stream-manager",
   "private": true,
   "engines": {
     "node": ">=0.8.0"
