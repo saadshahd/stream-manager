@@ -12,11 +12,24 @@
     "scripts": [
       "scripts/chromereload.js",
       "scripts/background.js"
-    ]
+    ],
+    "persistent": true
   },
+  "content_scripts": [{
+    "run_at": "document_start",
+    "matches": ["https://soundcloud.com/stream"],
+    "css": ["styles/styles.css"],
+    "js": ["scripts/inject.js"]
+  }],
+  "web_accessible_resources": [
+    "scripts/scripts.js"
+  ],
   "permissions": [
+    "*://*.soundcloud.com/*",
+    "*://soundcloud.com/*",
+    "background",
     "storage",
     "webRequest",
-    "*://*.google.com/"
+    "webRequestBlocking"
   ]
 }
