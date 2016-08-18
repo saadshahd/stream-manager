@@ -15,9 +15,6 @@ connection.onerror = error => {
 connection.onmessage = e => {
   if (e.data) {
     const data = JSON.parse(e.data);
-    if (data && data.command === 'reload') {
-      chrome.runtime.reload();
-    }
+    if (data && data.command === 'reload') chrome.runtime.reload();
   }
 };
-

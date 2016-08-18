@@ -2,6 +2,7 @@
   const streamItemSelector = '.stream .soundList__item';
   const streamItemContextSelector = '.soundContext';
   const streamItemTitleSelector = '.soundTitle__title span';
+
   let streamItems = [];
   let itemsElements;
   let oldCountOfElements = 0;
@@ -17,6 +18,7 @@
           const isStreamListEndPoint = loadStreamItemsExp.test(e.target.responseURL);
           const isStreamSessionEndPoint = startStreamSessionExp.test(e.target.responseURL);
           const isStreamEndPoint = isStreamListEndPoint || isStreamSessionEndPoint;
+
           let newItems;
           let countOfElements;
           let shouldStartOver;
@@ -51,39 +53,59 @@
     'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js'
   ], onScriptsLoadded);
 
-  function generateMarkup() {
+  window.streamManger = {
+    addFilter
+  };
+
+  function addFilter(filter) {
+    const event = new CustomEvent('streamMangerBackground', {detail: filter});
+    window.dispatchEvent(event);
+  }
+
+  function generateItemMarkup(prop, val, text) {
+    return `<li>
+      <button onclick="streamManger.addFilter({${prop}: '${val}'})">${text}</button>
+    </li>`;
+  }
+
+  function generateMarkup({type = 'track', trackId, trackBy, repostBy} = {}) {
+    let elementItemsMarkup = ``;
+
+    if (trackId) elementItemsMarkup += generateItemMarkup(`${type}Id`, trackId, `Hide this ${type}`);
+    if (trackBy) elementItemsMarkup += generateItemMarkup(`${type}By`, trackBy.id, `Hide ${trackBy.name}'s ${type}s`);
+    if (repostBy) elementItemsMarkup += generateItemMarkup('repostBy', repostBy.id, `Hide ${repostBy.name}'s reposts`);
+
     const $element = $(`<div class="ss-stream-manger">
       <button class="ss-stream-manger__arrow">▼</button>
       <div class="ss-stream-manger__dropdown">
-        <ul class="sc-list-nostyle">
-          <li>
-            <button>Remove this track</button>
-          </li>
-          <li>
-            <button>Hide all from abbbbbbhjk dhuisa</button>
-          </li>
-        </ul>
+        <ul class="sc-list-nostyle">${elementItemsMarkup}</ul>
       </div>
     </div>`);
 
+    dropdownToggle($element);
+
+    return $element;
+  }
+
+  function dropdownToggle($element) {
+    const $body = $('body');
     const $elementToggle = $element.find('.ss-stream-manger__arrow');
 
-    function openDropdown() {
+    function open() {
+      $body.off('click', close);
       $elementToggle.parent().addClass('is-open');
 
       setTimeout(() => {
-        $('body').on('click', closeDropdown);
+        $body.on('click', close);
       });
     }
 
-    function closeDropdown() {
+    function close() {
       $elementToggle.parent().removeClass('is-open');
-      $('body').off('click', closeDropdown);
+      $body.off('click', close);
     }
 
-    $elementToggle.click(openDropdown);
-
-    return $element;
+    $elementToggle.click(open);
   }
 
   function renderItems(oldElementsCount) {
@@ -97,9 +119,25 @@
         return (item.track || item.playlist).title === elementTitle;
       });
 
-      $elementContext.append(generateMarkup());
+      const itemType = itemModel.type.replace('-repost', '');
+      const itemData = itemModel.track || itemModel.playlist;
+      const isRepost = /-repost/.test(itemModel.type);
+      const repostBy = isRepost && {
+        id: itemModel.user.id,
+        name: itemModel.user.username
+      };
 
-      console.log(itemModel, elementTitle);
+      $elementContext.append(generateMarkup({
+        type: itemType,
+        trackId: itemModel.uuid,
+        trackBy: {
+          id: itemData.user.id,
+          name: itemData.user.username
+        },
+        repostBy
+      }));
+
+      console.log(elementTitle);
     });
   }
 
