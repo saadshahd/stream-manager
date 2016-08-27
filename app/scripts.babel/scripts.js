@@ -1,52 +1,35 @@
 (function () {
-  const streamItemSelector = '.stream .soundList__item';
+  const loadStreamItemsExp = /soundcloud.com\/stream/g;
+  const streamItemSelector = '.soundList__item';
   const streamItemContextSelector = '.soundContext';
   const streamItemTitleSelector = '.soundTitle__title span';
+  const streamAddedNodeClassName = 'waveformCommentsNode';
+
+  const observer = new MutationObserver(items => {
+    _.each(items, item => {
+      const element = item.addedNodes[0];
+      const className = element && element.className;
+      const isStreamItem = className && className.includes(streamAddedNodeClassName);
+
+      if (isStreamItem) setTimeout(onTrackAdded.bind(null, element));
+    });
+  });
 
   let streamItems = [];
-  let itemsElements;
-  let oldCountOfElements = 0;
 
-  (function () {
-    const loadStreamItemsExp = /soundcloud.com\/stream/g;
-    const startStreamSessionExp = /soundcloud.com\/dashbox\/stream/g;
+  (function (send) {
+    XMLHttpRequest.prototype.send = function (data) {
+      send.call(this, data);
+      this.addEventListener('load', e => {
+        const isStreamListEndPoint = loadStreamItemsExp.test(e.target.responseURL);
 
-    (function (send) {
-      XMLHttpRequest.prototype.send = function (data) {
-        send.call(this, data);
-        this.addEventListener('load', e => {
-          const isStreamListEndPoint = loadStreamItemsExp.test(e.target.responseURL);
-          const isStreamSessionEndPoint = startStreamSessionExp.test(e.target.responseURL);
-          const isStreamEndPoint = isStreamListEndPoint || isStreamSessionEndPoint;
-
-          let newItems;
-          let countOfElements;
-          let shouldStartOver;
-          let newAddedElementsCount;
-
-          if (isStreamEndPoint) {
-            if (isStreamListEndPoint) {
-              newItems = JSON.parse(e.target.response).collection;
-              streamItems = streamItems.concat(newItems);
-            }
-
-            itemsElements = $(streamItemSelector);
-            countOfElements = itemsElements.length;
-            shouldStartOver = oldCountOfElements > countOfElements;
-
-            if (shouldStartOver) oldCountOfElements = 0;
-
-            newAddedElementsCount = countOfElements - oldCountOfElements;
-
-            if (newAddedElementsCount) {
-              renderItems(oldCountOfElements);
-              oldCountOfElements = countOfElements;
-            }
-          }
-        });
-      };
-    })(XMLHttpRequest.prototype.send);
-  })();
+        if (isStreamListEndPoint) {
+          const newItems = JSON.parse(e.target.response).collection;
+          streamItems = streamItems.concat(newItems);
+        }
+      });
+    };
+  })(XMLHttpRequest.prototype.send);
 
   loadScripts([
     'https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js',
@@ -57,23 +40,72 @@
     addFilter
   };
 
-  function addFilter(filter) {
-    const event = new CustomEvent('streamMangerBackground', {detail: filter});
-    window.dispatchEvent(event);
+  function onTrackAdded(element) {
+    const $item = $(element).parents(streamItemSelector).first();
+
+    renderItem($item);
   }
 
-  function generateItemMarkup(prop, val, text) {
+  function addFilter(filter, element) {
+    const event = new CustomEvent('streamMangerBackground', {detail: filter});
+    window.dispatchEvent(event);
+
+    disableItem(filter, element);
+  }
+
+  function disableItem({type, trackId, trackBy, repostBy} = {}, element) {
+    const $element = $(element).parents(streamItemSelector);
+    const $elementList = $element.find('.ss-stream-manger ul');
+    const elementItemsMarkup = generateItemsMarkup({
+      type, trackId, trackBy, repostBy,
+      method: 'remove',
+      actionText: 'Enable'
+    });
+
+    $element.addClass('disabled');
+    $elementList.html(elementItemsMarkup);
+  }
+
+  function generateItemMarkup({prop, val, text, method} = {}) {
     return `<li>
-      <button onclick="streamManger.addFilter({${prop}: '${val}'})">${text}</button>
+      <button onclick="streamManger.${method}Filter({${prop}: '${val}'}, this)">${text}</button>
     </li>`;
   }
 
-  function generateMarkup({type = 'track', trackId, trackBy, repostBy} = {}) {
+  function generateItemsMarkup({
+    type = 'track',
+    trackId, trackBy, repostBy,
+    method = 'add',
+    actionText = 'Disable'
+  } = {}) {
     let elementItemsMarkup = ``;
 
-    if (trackId) elementItemsMarkup += generateItemMarkup(`${type}Id`, trackId, `Hide this ${type}`);
-    if (trackBy) elementItemsMarkup += generateItemMarkup(`${type}By`, trackBy.id, `Hide ${trackBy.name}'s ${type}s`);
-    if (repostBy) elementItemsMarkup += generateItemMarkup('repostBy', repostBy.id, `Hide ${repostBy.name}'s reposts`);
+    if (trackId) elementItemsMarkup += generateItemMarkup({
+      prop: `trackId`,
+      val: trackId,
+      text: `${actionText} this ${type}`,
+      method
+    });
+
+    if (trackBy) elementItemsMarkup += generateItemMarkup({
+      prop: `trackBy`,
+      val: trackBy.id,
+      text: `${actionText} ${trackBy.name}'s ${type}s`,
+      method
+    });
+
+    if (repostBy) elementItemsMarkup += generateItemMarkup({
+      prop: 'repostBy',
+      val: repostBy.id,
+      text: `${actionText} ${repostBy.name}'s reposts`,
+      method
+    });
+
+    return elementItemsMarkup;
+  }
+
+  function generateMarkup({type, trackId, trackBy, repostBy} = {}) {
+    const elementItemsMarkup = generateItemsMarkup({type, trackId, trackBy, repostBy});
 
     const $element = $(`<div class="ss-stream-manger">
       <button class="ss-stream-manger__arrow">▼</button>
@@ -108,41 +140,46 @@
     $elementToggle.click(open);
   }
 
-  function renderItems(oldElementsCount) {
-    const newItemsElements = _.drop(itemsElements, oldElementsCount);
-
-    _.each(newItemsElements, element => {
-      const $element = $(element);
-      const $elementContext = $element.find(streamItemContextSelector);
-      const elementTitle = $element.find(streamItemTitleSelector).text();
-      const itemModel = _.find(streamItems, item => {
-        return (item.track || item.playlist).title === elementTitle;
-      });
-
-      const itemType = itemModel.type.replace('-repost', '');
-      const itemData = itemModel.track || itemModel.playlist;
-      const isRepost = /-repost/.test(itemModel.type);
-      const repostBy = isRepost && {
-        id: itemModel.user.id,
-        name: itemModel.user.username
-      };
-
-      $elementContext.append(generateMarkup({
-        type: itemType,
-        trackId: itemModel.uuid,
-        trackBy: {
-          id: itemData.user.id,
-          name: itemData.user.username
-        },
-        repostBy
-      }));
-
-      console.log(elementTitle);
+  function renderItem($element) {
+    const $elementContext = $element.find(streamItemContextSelector);
+    const elementTitle = $element.find(streamItemTitleSelector).text();
+    const itemModel = _.find(streamItems, item => {
+      return (item.track || item.playlist).title === elementTitle;
     });
+
+    if (!itemModel) return;
+
+    const itemType = itemModel.type.replace('-repost', '');
+    const itemData = itemModel.track || itemModel.playlist;
+    const isRepost = /-repost/.test(itemModel.type);
+    const trackBy = {
+      id: itemData.user.id,
+      name: itemData.user.username
+    };
+
+    const repostBy = isRepost && {
+      id: itemModel.user.id,
+      name: itemModel.user.username
+    };
+
+    $elementContext.append(generateMarkup({
+      type: itemType,
+      trackId: itemModel.uuid,
+      trackBy,
+      repostBy
+    }));
+
+    console.log(elementTitle);
   }
 
-  function onScriptsLoadded() {}
-  // function onStreamsLoadded() {}
+  function onScriptsLoadded() {
+    $(document).ready(() => {
+      observer.observe(document, {
+        childList: true,
+        subtree: true
+      });
+    });
+  }
 
   function loadScript(url, callback) {
     const script = document.createElement('script');

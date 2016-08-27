@@ -17,7 +17,7 @@
   },
   "content_scripts": [{
     "run_at": "document_start",
-    "matches": ["https://soundcloud.com/stream"],
+    "matches": ["https://soundcloud.com/*"],
     "css": ["styles/styles.css"],
     "js": ["scripts/inject.js"]
   }],
