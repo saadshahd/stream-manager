@@ -22,7 +22,7 @@
     "js": ["scripts/inject.js"]
   }],
   "web_accessible_resources": [
-    "scripts/scripts.js"
+    "scripts/main.js"
   ],
   "permissions": [
     "*://*.soundcloud.com/*",
