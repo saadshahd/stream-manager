@@ -1,4 +1,4 @@
-// import $ from 'jquery';
+import $ from 'jquery';
 // import _ from 'lodash';
 import * as view from './view';
 import * as model from './model';
@@ -9,24 +9,47 @@ view.events({
 
 model.intercept();
 
-// window.streamManger = {
-//   addFilter
-// };
+window.streamManger = {
+  addFilter,
+  removeFilter
+};
 
-function onTrackAdded(node) {
-  const $itemElement = view.getElementFromObserveNode(node);
-  const title = view.getElementTitle($itemElement);
+function getItemModelFromElement($element) {
+  const title = view.getElementTitle($element);
   const itemModel = model.getItemByTitle(title);
 
-  view.renderDropdown($itemElement, itemModel);
+  return itemModel;
 }
 
-// function addFilter(filter, element) {
-//   const event = new CustomEvent('streamMangerBackground', {detail: filter});
-//   window.dispatchEvent(event);
-//
-//   disableItem(filter, element);
-// }
+function onTrackAdded(node) {
+  const $element = view.$getElementFromChildNode(node);
+  const itemModel = getItemModelFromElement($element);
+
+  view.renderDropdown($element, itemModel);
+}
+
+function addFilter(filter, node) {
+  const $element = view.$getElementFromChildNode(node);
+  const itemModel = getItemModelFromElement($element);
+  const filteredModel = model.getFilteredModel(itemModel, filter);
+
+  model.saveFilter(filter);
+  view.disableItem({
+    $element,
+    model: filteredModel
+  });
+}
+
+function removeFilter(filter, node) {
+  const $element = view.$getElementFromChildNode(node);
+  const itemModel = getItemModelFromElement($element);
+
+  model.deleteFilter(filter);
+  view.enableItem({
+    $element,
+    model: itemModel
+  });
+}
 
 // function disableItem({type, trackId, trackBy, repostBy} = {}, element) {
 //   const $element = $(element).parents(streamItemSelector);

@@ -4,6 +4,10 @@ import xhrProxy from './xhr-proxy';
 
 const collection = {};
 
+function _tirggerBackgroundEvent(detail) {
+  window.dispatchEvent(new CustomEvent('streamMangerBackground', {detail}));
+}
+
 export function intercept() {
   xhrProxy(target => {
     const response = $.parseJSON(target.response).collection;
@@ -21,11 +25,20 @@ export function getItemByTitle(title) {
   return _.find(collection, {title});
 }
 
+export function getFilteredModel(itemModel, filter) {
+  const filterKey = _.keys(filter)[0];
+
+  return {
+    type: itemModel.type,
+    [filterKey]: itemModel[filterKey]
+  };
+}
+
 export function parseItem(item) {
   const type = item.type.replace('-repost', '');
   const data = item.track || item.playlist;
   const title = data.title;
-  const isRepost = /-repost/.test(type);
+  const isRepost = /-repost/.test(item.type);
 
   const trackId = item.uuid;
   const trackBy = {
@@ -53,4 +66,18 @@ export function add(item) {
 
 export function addCollection(newCollection) {
   _.each(newCollection, add);
+}
+
+export function saveFilter(filter) {
+  _tirggerBackgroundEvent({
+    filter,
+    method: 'add'
+  });
+}
+
+export function deleteFilter(filter) {
+  _tirggerBackgroundEvent({
+    filter,
+    method: 'remove'
+  });
 }

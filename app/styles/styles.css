@@ -10,11 +10,8 @@
   text-align: right;
   position: relative; }
 
-.ss-sm-dropdown__button:focus {
+.is-open > .ss-sm-dropdown__button {
   background-color: #eaeaea; }
-
-.ss-sm-dropdown__button:focus + .ss-sm-dropdown__content {
-  display: block; }
 
 .ss-sm-dropdown__content {
   text-align: left;
@@ -26,6 +23,8 @@
   right: 0;
   z-index: 9;
   display: none; }
+  .is-open > .ss-sm-dropdown__content {
+    display: block; }
   .ss-sm-dropdown__content button {
     display: block;
     width: 100%; }

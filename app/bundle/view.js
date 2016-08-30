@@ -3,10 +3,16 @@ import _ from 'lodash';
 import * as icons from './icons';
 
 const streamItemSelector = '.soundList__item';
+const streamItemDiabledClassName = 'disabled';
 const streamItemContextSelector = '.soundContext';
 const streamItemTitleSelector = '.soundTitle__title span';
 const streamAddedNodeClassName = 'g-box-full sceneLayer';
-const hasDropdownClassName = 'ss-sm-has-dropdown';
+
+const prefixClasses = 'ss-sm-';
+const dropdownClassName = `${prefixClasses}dropdown`;
+const hasDropdownClassName = `${prefixClasses}has-dropdown`;
+const isDropdownOpenClassName = `is-open`;
+const dropdownButtonClassName = `${dropdownClassName}__button`;
 
 function generateDropdownActionMarkup({prop, val, text, method = 'add'} = {}) {
   return `<li>
@@ -20,19 +26,19 @@ function generateDropdownActionsMarkup({
   actionText = 'Disable'
 } = {}) {
   let elementItemsMarkup = ``;
-  const {trackId, type, trackBy, repostBy} = model;
+  const {trackId, trackBy, repostBy} = model;
 
   if (trackId) elementItemsMarkup += generateDropdownActionMarkup({
     prop: 'trackId',
     val: trackId,
-    text: `${actionText} this ${type}`,
+    text: `${actionText} this post`,
     method
   });
 
   if (trackBy) elementItemsMarkup += generateDropdownActionMarkup({
     prop: 'trackBy',
     val: trackBy.id,
-    text: `${actionText} ${trackBy.name}'s ${type}s`,
+    text: `${actionText} ${trackBy.name}'s posts`,
     method
   });
 
@@ -50,35 +56,86 @@ function generateDropdownMarkup(itemModel) {
   const actionsMarkup = generateDropdownActionsMarkup({model: itemModel});
   const chevronIcon = icons.chevron();
 
-  const $element = $(`<div class="ss-sm-dropdown">
-    <button class="ss-sm-dropdown__button">${chevronIcon}</button>
-    <div class="ss-sm-dropdown__content">
+  const $element = $(`<div class="${dropdownClassName}">
+    <button class="${dropdownButtonClassName}">${chevronIcon}</button>
+    <div class="${dropdownClassName}__content">
       <ul class="sc-list-nostyle">${actionsMarkup}</ul>
     </div>
   </div>`);
 
+  _dropdownise($element);
+
   return $element;
-}
-
-export function getElementFromObserveNode(node) {
-  return $(node).parents(streamItemSelector).first();
-}
-
-export function getElementTitle($element) {
-  return $element.find(streamItemTitleSelector).text();
 }
 
 export function renderDropdown($element, itemModel) {
   const elementTitle = getElementTitle($element);
-  const $elementContext = $element.find(streamItemContextSelector);
-  const hasDropdown = $elementContext.hasClass(hasDropdownClassName);
+  const $elementContext = _$getElementContext($element);
+  const hasDropdown = _hasDropdown($elementContext);
 
   if (!hasDropdown) {
     $elementContext.addClass(hasDropdownClassName);
     $elementContext.append(generateDropdownMarkup(itemModel));
     console.log(elementTitle);
   }
+}
 
+export function getElementTitle($element) {
+  return $element.find(streamItemTitleSelector).text();
+}
+
+export function $getElementFromChildNode(node) {
+  return $(node).parents(streamItemSelector).first();
+}
+
+function _$getElementContext($element) {
+  return $element.find(streamItemContextSelector);
+}
+
+function _$getElementDropdownList($element) {
+  return $element.find(`.${dropdownClassName} ul`);
+}
+
+function _hasDropdown($elementContext) {
+  return $elementContext.hasClass(hasDropdownClassName);
+}
+
+function _dropdownise($element) {
+  const $body = $('body');
+  const $elementToggle = $element.find(`.${dropdownButtonClassName}`);
+
+  function open() {
+    $body.off('click', close);
+    $elementToggle.parent().addClass(isDropdownOpenClassName);
+
+    setTimeout(() => $body.click(close));
+  }
+
+  function close() {
+    $elementToggle.parent().removeClass(isDropdownOpenClassName);
+    $body.off('click', close);
+  }
+
+  $elementToggle.click(open);
+}
+
+export function disableItem({$element, model} = {}) {
+  const $dropdownList = _$getElementDropdownList($element);
+
+  $dropdownList.html(generateDropdownActionsMarkup({
+    model,
+    method: 'remove',
+    actionText: 'Enable'
+  }));
+
+  $element.addClass(streamItemDiabledClassName);
+}
+
+export function enableItem({$element, model} = {}) {
+  const $dropdownList = _$getElementDropdownList($element);
+
+  $dropdownList.html(generateDropdownActionsMarkup({model}));
+  $element.removeClass(streamItemDiabledClassName);
 }
 
 export function events({

@@ -20,12 +20,8 @@ $ligh-grey: #eaeaea;
   &dropdown__button {
     @extend %reset-button;
 
-    &:focus {
+    .is-open > & {
       background-color: $ligh-grey;
-    }
-
-    &:focus + .ss-sm-dropdown__content {
-      display: block;
     }
   }
 
@@ -42,6 +38,10 @@ $ligh-grey: #eaeaea;
     z-index: 9;
 
     display: none;
+
+    .is-open > & {
+      display: block;
+    }
 
     button {
       @extend %reset-button;
