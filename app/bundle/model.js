@@ -81,3 +81,9 @@ export function deleteFilter(filter) {
     method: 'remove'
   });
 }
+
+// export function matchFilter(itemModel) {
+//   return _.find(collection, filter => {
+//     console.log(filter);
+//   });
+// }

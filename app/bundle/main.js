@@ -24,8 +24,18 @@ function getItemModelFromElement($element) {
 function onTrackAdded(node) {
   const $element = view.$getElementFromChildNode(node);
   const itemModel = getItemModelFromElement($element);
+  // const matchedFilter = model.matchFilter(itemModel);
 
   view.renderDropdown($element, itemModel);
+
+  // if (matchedFilter) {
+  //   const filteredModel = model.getFilteredModel(itemModel, matchedFilter);
+  //
+  //   view.disableItem({
+  //     $element,
+  //     model: filteredModel
+  //   });
+  // }
 }
 
 function addFilter(filter, node) {

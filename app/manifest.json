@@ -1,8 +1,8 @@
 {
-  "name": "__MSG_appName__",
+  "name": "Stream Manger",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "__MSG_appDescription__",
+  "description": "A chrome extension to organize soundcloud's stream",
   "icons": {
     "16": "images/icon-16.png",
     "128": "images/icon-128.png"
@@ -19,7 +19,7 @@
     "run_at": "document_start",
     "matches": ["https://soundcloud.com/*"],
     "css": ["styles/styles.css"],
-    "js": ["scripts/inject.js"]
+    "js": ["scripts/scripts.js"]
   }],
   "web_accessible_resources": [
     "scripts/main.js"
