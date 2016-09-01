@@ -2,12 +2,13 @@
   "name": "Stream Manger",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "A chrome extension to organize soundcloud's stream",
+  "description": "Disable posts at soundcloud's stream",
   "icons": {
     "16": "images/icon-16.png",
-    "128": "images/icon-128.png"
+    "114": "images/icon-114.png"
   },
   "default_locale": "en",
+  "author": "Saad Shahd",
   "background": {
     "scripts": [
       "scripts/chromereload.js",
