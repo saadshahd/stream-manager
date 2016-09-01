@@ -68,15 +68,20 @@ function generateDropdownMarkup(itemModel) {
   return $element;
 }
 
-export function renderDropdown($element, itemModel) {
-  const elementTitle = getElementTitle($element);
+export function isRendered($element) {
   const $elementContext = _$getElementContext($element);
   const hasDropdown = _hasDropdown($elementContext);
 
-  if (!hasDropdown) {
+  return hasDropdown;
+}
+
+export function renderDropdown($element, itemModel) {
+  const $elementContext = _$getElementContext($element);
+  const elmentIsRendered = isRendered($element);
+
+  if (!elmentIsRendered) {
     $elementContext.addClass(hasDropdownClassName);
     $elementContext.append(generateDropdownMarkup(itemModel));
-    console.log(elementTitle);
   }
 }
 
@@ -86,6 +91,10 @@ export function getElementTitle($element) {
 
 export function $getElementFromChildNode(node) {
   return $(node).parents(streamItemSelector).first();
+}
+
+export function $getElementAllItems() {
+  return $(streamItemSelector);
 }
 
 function _$getElementContext($element) {
@@ -119,6 +128,10 @@ function _dropdownise($element) {
   $elementToggle.click(open);
 }
 
+export function isDisabled($element) {
+  return $element.hasClass(streamItemDiabledClassName);
+}
+
 export function disableItem({$element, model} = {}) {
   const $dropdownList = _$getElementDropdownList($element);
 
@@ -138,16 +151,14 @@ export function enableItem({$element, model} = {}) {
   $element.removeClass(streamItemDiabledClassName);
 }
 
-export function events({
-  onTrackAdded = _.noop
-} = {}) {
+export function events({onTrackAdded}) {
   const observer = new MutationObserver(items => {
     _.each(items, item => {
       const element = item.addedNodes[0];
       const className = element && element.className;
       const isStreamItem = className === streamAddedNodeClassName;
 
-      if (isStreamItem) setTimeout(onTrackAdded.bind(null, element));
+      if (isStreamItem && onTrackAdded) setTimeout(onTrackAdded.bind(null, element));
     });
   });
 

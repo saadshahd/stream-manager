@@ -82,9 +82,9 @@ gulp.task('chromeManifest', () => {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('babel', () => {
+function bundleJsFile({srcPath, fileName} = {}) {
   const b = browserify({
-    entries: 'app/bundle/main.js',
+    entries: `${srcPath}/${fileName}`,
     transform: babelify.configure({
       plugins: ['transform-runtime']
     }),
@@ -92,13 +92,25 @@ gulp.task('babel', () => {
   });
 
   b.bundle()
-    .pipe(source('main.js'))
+    .pipe(source(fileName))
     .pipe(buffer())
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest('app/scripts/'));
+}
 
-  return gulp.src('app/scripts.babel/**/*.js')
+gulp.task('babel', () => {
+  bundleJsFile({
+    srcPath: 'app/bundle',
+    fileName: 'main.js'
+  });
+
+  bundleJsFile({
+    srcPath: 'app/scripts.babel',
+    fileName: 'scripts.js'
+  });
+
+  return gulp.src('app/scripts.babel/!(scripts).js')
       .pipe($.babel())
       .pipe(gulp.dest('app/scripts'));
 });

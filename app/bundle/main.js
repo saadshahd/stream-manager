@@ -3,8 +3,14 @@ import $ from 'jquery';
 import * as view from './view';
 import * as model from './model';
 
+let filtersReady = false;
+
 view.events({
   onTrackAdded
+});
+
+model.events({
+  onFiltersUpdate
 });
 
 model.intercept();
@@ -14,6 +20,19 @@ window.streamManger = {
   removeFilter
 };
 
+function onFiltersUpdate() {
+  const $elements = view.$getElementAllItems();
+
+  $elements.each(function () {
+    const $element = $(this);
+    const itemModel = getItemModelFromElement($element);
+
+    if (filtersReady) filterElement($element, itemModel);
+  });
+
+  if (!filtersReady) filtersReady = true;
+}
+
 function getItemModelFromElement($element) {
   const title = view.getElementTitle($element);
   const itemModel = model.getItemByTitle(title);
@@ -21,21 +40,38 @@ function getItemModelFromElement($element) {
   return itemModel;
 }
 
-function onTrackAdded(node) {
-  const $element = view.$getElementFromChildNode(node);
+function filterElement($element, itemModel) {
+  const matchFilter = model.matchFilter(itemModel);
+  const elementIsDiabled = view.isDisabled($element);
+
+  if (matchFilter) {
+    const filteredModel = model.getFilteredModel(itemModel, matchFilter);
+
+    view.disableItem({
+      $element,
+      model: filteredModel
+    });
+  } else if (elementIsDiabled) {
+    view.enableItem({
+      $element,
+      model: itemModel
+    });
+  }
+}
+
+function renderElement($element) {
   const itemModel = getItemModelFromElement($element);
-  // const matchedFilter = model.matchFilter(itemModel);
 
   view.renderDropdown($element, itemModel);
 
-  // if (matchedFilter) {
-  //   const filteredModel = model.getFilteredModel(itemModel, matchedFilter);
-  //
-  //   view.disableItem({
-  //     $element,
-  //     model: filteredModel
-  //   });
-  // }
+  if (filtersReady) filterElement($element, itemModel);
+}
+
+function onTrackAdded(node) {
+  const $element = view.$getElementFromChildNode(node);
+  const elementIsRendered = view.isRendered($element);
+
+  if (!elementIsRendered) renderElement($element);
 }
 
 function addFilter(filter, node) {
@@ -60,16 +96,3 @@ function removeFilter(filter, node) {
     model: itemModel
   });
 }
-
-// function disableItem({type, trackId, trackBy, repostBy} = {}, element) {
-//   const $element = $(element).parents(streamItemSelector);
-//   const $elementList = $element.find('.ss-stream-manger ul');
-//   const elementItemsMarkup = generateItemsMarkup({
-//     type, trackId, trackBy, repostBy,
-//     method: 'remove',
-//     actionText: 'Enable'
-//   });
-//
-//   $element.addClass('disabled');
-//   $elementList.html(elementItemsMarkup);
-// }

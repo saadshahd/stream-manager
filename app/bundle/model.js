@@ -1,11 +1,21 @@
 import $ from 'jquery';
 import _ from 'lodash';
 import xhrProxy from './xhr-proxy';
+import * as Eventer from './event';
 
 const collection = {};
+let filters;
 
-function _tirggerBackgroundEvent(detail) {
-  window.dispatchEvent(new CustomEvent('streamMangerBackground', {detail}));
+_listenToFiltersChange();
+
+function _sendData(operation) {
+  Eventer.emit('updateFilters', operation);
+}
+
+function _listenToFiltersChange() {
+  Eventer.on('filtersUpdated', newFilters => {
+    filters = newFilters;
+  });
 }
 
 export function intercept() {
@@ -69,21 +79,43 @@ export function addCollection(newCollection) {
 }
 
 export function saveFilter(filter) {
-  _tirggerBackgroundEvent({
+  _sendData({
     filter,
     method: 'add'
   });
 }
 
 export function deleteFilter(filter) {
-  _tirggerBackgroundEvent({
+  _sendData({
     filter,
     method: 'remove'
   });
 }
 
-// export function matchFilter(itemModel) {
-//   return _.find(collection, filter => {
-//     console.log(filter);
-//   });
-// }
+function matchTrackId(itemModel, filter) {
+  return itemModel.trackId === filter.trackId;
+}
+
+function matchTrackBy(itemModel, filter) {
+  return itemModel.trackBy && itemModel.trackBy.id === Number(filter.trackBy);
+}
+
+function matchRepostBy(itemModel, filter) {
+  return itemModel.repostBy && itemModel.repostBy.id === Number(filter.repostBy);
+}
+
+export function matchFilter(itemModel) {
+  const matchId = matchTrackId.bind(null, itemModel);
+  const matchBy = matchTrackBy.bind(null, itemModel);
+  const matchRepost = matchRepostBy.bind(null, itemModel);
+
+  // console.log(itemModel, filters);
+
+  return _.find(filters, filter => {
+    return matchId(filter) || matchBy(filter) || matchRepost(filter);
+  });
+}
+
+export function events({onFiltersUpdate}) {
+  if (onFiltersUpdate) Eventer.on('filtersUpdated', onFiltersUpdate);
+}
