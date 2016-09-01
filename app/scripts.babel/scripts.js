@@ -8,8 +8,6 @@ script.onload = () => {
   let filters;
   loadFilters();
 
-  // chrome.storage.sync.clear();
-
   function getItemIndexByFilter(filter) {
     return filters.findIndex(item => {
       const itemKey = Object.keys(item)[0];
@@ -65,8 +63,6 @@ script.onload = () => {
   }
 
   function updateFilters({filter, method = 'add'} = {}) {
-    console.log('update');
-
     const index = getItemIndexByFilter(filter);
     const hasIndex = index !== -1;
 

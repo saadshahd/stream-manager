@@ -11,6 +11,16 @@ $ligh-grey: #eaeaea;
 }
 
 .ss-sm- {
+  &disabled {
+    opacity: 0.3;
+    height: 90px;
+    overflow: hidden;
+
+    .playButton {
+      visibility: hidden;
+    }
+  }
+
   &dropdown {
     flex: 1 1 0;
     text-align: right;

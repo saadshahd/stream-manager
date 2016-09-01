@@ -6,6 +6,7 @@ import * as model from './model';
 let filtersReady = false;
 
 view.events({
+  onPlay,
   onTrackAdded
 });
 
@@ -19,6 +20,14 @@ window.streamManger = {
   addFilter,
   removeFilter
 };
+
+function onPlay() {
+  const $playingElement = view.$getPlayingItem();
+  const itemModel = getItemModelFromElement($playingElement);
+  const matchFilter = model.matchFilter(itemModel);
+
+  if (matchFilter) view.playNext($playingElement);
+}
 
 function onFiltersUpdate() {
   const $elements = view.$getElementAllItems();
@@ -46,6 +55,9 @@ function filterElement($element, itemModel) {
 
   if (matchFilter) {
     const filteredModel = model.getFilteredModel(itemModel, matchFilter);
+    const itemIsPlaying = view.isPlaying($element);
+
+    if (itemIsPlaying) view.playNext($element);
 
     view.disableItem({
       $element,

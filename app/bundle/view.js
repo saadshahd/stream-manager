@@ -3,16 +3,24 @@ import _ from 'lodash';
 import * as icons from './icons';
 
 const streamItemSelector = '.soundList__item';
-const streamItemDiabledClassName = 'disabled';
 const streamItemContextSelector = '.soundContext';
 const streamItemTitleSelector = '.soundTitle__title span';
 const streamAddedNodeClassName = 'g-box-full sceneLayer';
+const playControlsClassName = 'playControls';
+const playControlClassName = 'playControl';
+const playControlSelector = `.${playControlClassName}`;
+const isPlayingClassName = `playing`;
+const playingItemSelector = `.sound.playing`;
+const playButtonSelector = '.playButton';
 
 const prefixClasses = 'ss-sm-';
 const dropdownClassName = `${prefixClasses}dropdown`;
 const hasDropdownClassName = `${prefixClasses}has-dropdown`;
 const isDropdownOpenClassName = `is-open`;
 const dropdownButtonClassName = `${dropdownClassName}__button`;
+const itemDiabledClassName = `${prefixClasses}disabled`;
+
+const $htmlAndBody = $('html, body');
 
 function generateDropdownActionMarkup({prop, val, text, method = 'add'} = {}) {
   return `<li>
@@ -129,7 +137,7 @@ function _dropdownise($element) {
 }
 
 export function isDisabled($element) {
-  return $element.hasClass(streamItemDiabledClassName);
+  return $element.hasClass(itemDiabledClassName);
 }
 
 export function disableItem({$element, model} = {}) {
@@ -141,24 +149,89 @@ export function disableItem({$element, model} = {}) {
     actionText: 'Enable'
   }));
 
-  $element.addClass(streamItemDiabledClassName);
+  $element.addClass(itemDiabledClassName);
 }
 
 export function enableItem({$element, model} = {}) {
   const $dropdownList = _$getElementDropdownList($element);
 
   $dropdownList.html(generateDropdownActionsMarkup({model}));
-  $element.removeClass(streamItemDiabledClassName);
+  $element.removeClass(itemDiabledClassName);
 }
 
-export function events({onTrackAdded}) {
+function _srcollToElement($element) {
+  const scrollTop = $element.offset().top - 50;
+
+  $htmlAndBody
+    .stop()
+    .animate({scrollTop}, 'slow');
+}
+
+export function isPlaying($element) {
+  return Boolean($element.find(playingItemSelector).length);
+}
+
+export function $getPlayingItem() {
+  return $(`${streamItemSelector} ${playingItemSelector}`).parents(streamItemSelector);
+}
+
+export function $getElementNextItem($element) {
+  return $element.next(streamItemSelector);
+}
+
+export function playItem($element) {
+  const $button = $element.find(`${playButtonSelector}[title="Play"]`);
+
+  $button.click();
+  _srcollToElement($element);
+}
+
+export function pauseItem($element) {
+  const $button = $element.find(`${playButtonSelector}[title="Pause"]`);
+
+  $button.click();
+}
+
+export function playNext($element) {
+  const $nextElement = $getElementNextItem($element);
+  const nextElementIsDisabled = isDisabled($nextElement);
+  const itemIsPlaying = isPlaying($element);
+
+  if (itemIsPlaying) pauseItem($element);
+
+  if (nextElementIsDisabled) playNext($nextElement);
+  else playItem($nextElement);
+}
+
+function _getClassRegex(className) {
+  return new RegExp(`(\\s+|^)${className}(\\s+|$)`);
+}
+
+export function events({onTrackAdded, onPlay}) {
+  const debouncedOnPlay = _.debounce(onPlay);
+
+  const playerObserver = new MutationObserver(items => {
+    _.each(items, item => {
+      const isClass = item.attributeName === 'class';
+      const className = item.target.className;
+      const hasPlayingClass = isClass && _getClassRegex(isPlayingClassName).test(className);
+
+      if (hasPlayingClass) debouncedOnPlay();
+    });
+  });
+
   const observer = new MutationObserver(items => {
     _.each(items, item => {
       const element = item.addedNodes[0];
       const className = element && element.className;
       const isStreamItem = className === streamAddedNodeClassName;
+      const isPlayCotrols = _getClassRegex(playControlsClassName).test(className);
 
-      if (isStreamItem && onTrackAdded) setTimeout(onTrackAdded.bind(null, element));
+      if (isStreamItem) setTimeout(onTrackAdded.bind(null, element));
+      if (isPlayCotrols) {
+        const playControlElement = $(element).find(playControlSelector).get(0);
+        playerObserver.observe(playControlElement, {attributes: true});
+      }
     });
   });
 

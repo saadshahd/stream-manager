@@ -20,9 +20,13 @@ function _listenToFiltersChange() {
 
 export function intercept() {
   xhrProxy(target => {
-    const response = $.parseJSON(target.response).collection;
+    let response;
 
-    if (collection) {
+    try {
+      response = $.parseJSON(target.response).collection;
+    } catch (e) {}
+
+    if (response) {
       const item = _.first(response);
       const isPlayable = item && /track|playlist/.test(item.type);
 
@@ -105,11 +109,11 @@ function matchRepostBy(itemModel, filter) {
 }
 
 export function matchFilter(itemModel) {
+  if (!itemModel) return;
+
   const matchId = matchTrackId.bind(null, itemModel);
   const matchBy = matchTrackBy.bind(null, itemModel);
   const matchRepost = matchRepostBy.bind(null, itemModel);
-
-  // console.log(itemModel, filters);
 
   return _.find(filters, filter => {
     return matchId(filter) || matchBy(filter) || matchRepost(filter);
