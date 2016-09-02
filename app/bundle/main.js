@@ -16,7 +16,7 @@ model.events({
 
 model.intercept();
 
-window.streamManger = {
+window.streamManager = {
   addFilter,
   removeFilter
 };

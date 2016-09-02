@@ -149,7 +149,7 @@ gulp.task('package', () => {
   const manifest = require('./dist/manifest.json');
 
   return gulp.src('dist/**')
-      .pipe($.zip('stream manger-' + manifest.version + '.zip'))
+      .pipe($.zip('stream manager-' + manifest.version + '.zip'))
       .pipe(gulp.dest('package'));
 });
 

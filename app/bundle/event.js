@@ -1,4 +1,4 @@
-const nameSpace = 'StreamManger';
+const nameSpace = 'StreamManager';
 
 function getType(name) {
   return `${nameSpace}:${name}`;

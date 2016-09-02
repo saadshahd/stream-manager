@@ -24,7 +24,7 @@ const $htmlAndBody = $('html, body');
 
 function generateDropdownActionMarkup({prop, val, text, method = 'add'} = {}) {
   return `<li>
-    <button onclick="streamManger.${method}Filter({${prop}: '${val}'}, this)">${text}</button>
+    <button onclick="streamManager.${method}Filter({${prop}: '${val}'}, this)">${text}</button>
   </li>`;
 }
 
