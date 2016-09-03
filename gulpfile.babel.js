@@ -93,7 +93,7 @@ function bundleJsFile({srcPath, fileName} = {}) {
     debug: true
   });
 
-  b.bundle()
+  return b.bundle()
     .pipe(source(fileName))
     .pipe(buffer())
     .pipe($.sourcemaps.init({loadMaps: true}))
@@ -101,20 +101,28 @@ function bundleJsFile({srcPath, fileName} = {}) {
     .pipe(gulp.dest('app/scripts/'));
 }
 
-gulp.task('babel', () => {
-  bundleJsFile({
-    srcPath: 'app/bundle',
-    fileName: 'main.js'
-  });
-
-  bundleJsFile({
+gulp.task('babel:scriptsFile', () => {
+  return bundleJsFile({
     srcPath: 'app/scripts.babel',
     fileName: 'scripts.js'
   });
+});
 
+gulp.task('babel:mainFile', () => {
+  return bundleJsFile({
+    srcPath: 'app/bundle',
+    fileName: 'main.js'
+  });
+});
+
+gulp.task('babel:scriptsFolder', () => {
   return gulp.src('app/scripts.babel/!(scripts).js')
-      .pipe($.babel())
-      .pipe(gulp.dest('app/scripts'));
+    .pipe($.babel())
+    .pipe(gulp.dest('app/scripts'));
+});
+
+gulp.task('babel', cb => {
+  runSequence('babel:scriptsFile', 'babel:mainFile', 'babel:scriptsFolder', cb);
 });
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
