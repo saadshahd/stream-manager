@@ -98,6 +98,10 @@ export function deleteFilter(filter) {
   });
 }
 
+function matchTrackTitle(itemModel, filter) {
+  return itemModel.title === filter.title;
+}
+
 function matchTrackGenre(itemModel, filter) {
   return itemModel.genre === filter.genre;
 }
@@ -117,13 +121,15 @@ function matchRepostBy(itemModel, filter) {
 export function matchFilter(itemModel) {
   if (!itemModel) return;
 
+  const matchTitle = matchTrackTitle.bind(null, itemModel);
   const matchGenre = matchTrackGenre.bind(null, itemModel);
   const matchId = matchTrackId.bind(null, itemModel);
   const matchBy = matchTrackBy.bind(null, itemModel);
   const matchRepost = matchRepostBy.bind(null, itemModel);
 
   return _.find(filters, filter => {
-    return matchGenre(filter) || matchId(filter) || matchBy(filter) || matchRepost(filter);
+    return matchTitle(filter) || matchGenre(filter) || matchId(filter) ||
+       matchBy(filter) || matchRepost(filter);
   });
 }
 

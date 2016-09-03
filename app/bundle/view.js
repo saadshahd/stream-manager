@@ -34,7 +34,7 @@ function generateDropdownActionsMarkup({
   actionText = 'Disable'
 } = {}) {
   let elementItemsMarkup = ``;
-  const {genre, trackId, trackBy, repostBy} = model;
+  const {title, genre, trackId, trackBy, repostBy} = model;
 
   if (trackId) elementItemsMarkup += generateDropdownActionMarkup({
     prop: 'trackId',
@@ -61,6 +61,13 @@ function generateDropdownActionsMarkup({
     prop: 'genre',
     val: genre,
     text: `${actionText} all the posts from ${genre} genre`,
+    method
+  });
+
+  if (title) elementItemsMarkup += generateDropdownActionMarkup({
+    prop: 'title',
+    val: title,
+    text: `${actionText} all the posts with this title`,
     method
   });
 
