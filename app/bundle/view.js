@@ -22,6 +22,51 @@ const itemDiabledClassName = `${prefixClasses}disabled`;
 
 const $htmlAndBody = $('html, body');
 
+function generateTrackIdActionMarkup(method, actionText, trackId) {
+  return generateDropdownActionMarkup({
+    prop: 'trackId',
+    val: trackId,
+    text: `${actionText} this post`,
+    method
+  });
+}
+
+function generateTrackByActionMarkup(method, actionText, trackBy) {
+  return generateDropdownActionMarkup({
+    prop: 'trackBy',
+    val: trackBy.id,
+    text: `${actionText} ${trackBy.name}'s posts`,
+    method
+  });
+}
+
+function generateRepostByActionMarkup(method, actionText, repostBy) {
+  return generateDropdownActionMarkup({
+    prop: 'repostBy',
+    val: repostBy.id,
+    text: `${actionText} ${repostBy.name}'s reposts`,
+    method
+  });
+}
+
+function generateGenreActionMarkup(method, actionText, genre) {
+  return generateDropdownActionMarkup({
+    prop: 'genre',
+    val: genre,
+    text: `${actionText} all the posts from ${genre} genre`,
+    method
+  });
+}
+
+function generateTitleActionMarkup(method, actionText, title) {
+  return generateDropdownActionMarkup({
+    prop: 'title',
+    val: title,
+    text: `${actionText} all the posts with this title`,
+    method
+  });
+}
+
 function generateDropdownActionMarkup({prop, val, text, method = 'add'} = {}) {
   return `<li>
     <button onclick="streamManager.${method}Filter({${prop}: '${val}'}, this)">${text}</button>
@@ -33,43 +78,15 @@ function generateDropdownActionsMarkup({
   method,
   actionText = 'Disable'
 } = {}) {
-  let elementItemsMarkup = ``;
   const {title, genre, trackId, trackBy, repostBy} = model;
 
-  if (trackId) elementItemsMarkup += generateDropdownActionMarkup({
-    prop: 'trackId',
-    val: trackId,
-    text: `${actionText} this post`,
-    method
-  });
+  let elementItemsMarkup = ``;
 
-  if (trackBy) elementItemsMarkup += generateDropdownActionMarkup({
-    prop: 'trackBy',
-    val: trackBy.id,
-    text: `${actionText} ${trackBy.name}'s posts`,
-    method
-  });
-
-  if (repostBy) elementItemsMarkup += generateDropdownActionMarkup({
-    prop: 'repostBy',
-    val: repostBy.id,
-    text: `${actionText} ${repostBy.name}'s reposts`,
-    method
-  });
-
-  if (genre) elementItemsMarkup += generateDropdownActionMarkup({
-    prop: 'genre',
-    val: genre,
-    text: `${actionText} all the posts from ${genre} genre`,
-    method
-  });
-
-  if (title) elementItemsMarkup += generateDropdownActionMarkup({
-    prop: 'title',
-    val: title,
-    text: `${actionText} all the posts with this title`,
-    method
-  });
+  if (trackId) elementItemsMarkup += generateTrackIdActionMarkup(method, actionText, trackId);
+  if (trackBy) elementItemsMarkup += generateTrackByActionMarkup(method, actionText, trackBy);
+  if (repostBy) elementItemsMarkup += generateRepostByActionMarkup(method, actionText, repostBy);
+  if (genre) elementItemsMarkup += generateGenreActionMarkup(method, actionText, genre);
+  if (title) elementItemsMarkup += generateTitleActionMarkup(method, actionText, title);
 
   return elementItemsMarkup;
 }

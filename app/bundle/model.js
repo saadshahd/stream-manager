@@ -98,38 +98,31 @@ export function deleteFilter(filter) {
   });
 }
 
-function matchTrackTitle(itemModel, filter) {
-  return itemModel.title === filter.title;
+function matchValue(itemModel, filter, propertyName) {
+  return itemModel[propertyName] === filter[propertyName];
 }
 
-function matchTrackGenre(itemModel, filter) {
-  return itemModel.genre === filter.genre;
-}
-
-function matchTrackId(itemModel, filter) {
-  return itemModel.trackId === filter.trackId;
-}
-
-function matchTrackBy(itemModel, filter) {
-  return itemModel.trackBy && itemModel.trackBy.id === Number(filter.trackBy);
-}
-
-function matchRepostBy(itemModel, filter) {
-  return itemModel.repostBy && itemModel.repostBy.id === Number(filter.repostBy);
+function matchIdValue(itemModel, filter, propertyName) {
+  return itemModel[propertyName] && itemModel[propertyName].id === Number(filter[propertyName]);
 }
 
 export function matchFilter(itemModel) {
   if (!itemModel) return;
 
-  const matchTitle = matchTrackTitle.bind(null, itemModel);
-  const matchGenre = matchTrackGenre.bind(null, itemModel);
-  const matchId = matchTrackId.bind(null, itemModel);
-  const matchBy = matchTrackBy.bind(null, itemModel);
-  const matchRepost = matchRepostBy.bind(null, itemModel);
+  const matchTitle = _.partial(matchValue, itemModel, _, 'title');
+  const matchGenre = _.partial(matchValue, itemModel, _, 'genre');
+  const matchId = _.partial(matchValue, itemModel, _, 'trackId');
+  const matchBy = _.partial(matchIdValue, itemModel, _, 'trackBy');
+  const matchRepost = _.partial(matchIdValue, itemModel, _, 'repostBy');
 
   return _.find(filters, filter => {
-    return matchTitle(filter) || matchGenre(filter) || matchId(filter) ||
-       matchBy(filter) || matchRepost(filter);
+    const hasTitle = matchTitle(filter);
+    const hasGenre = matchGenre(filter);
+    const hasId = matchId(filter);
+    const hasBy = matchBy(filter);
+    const hasRepost = matchRepost(filter);
+
+    return hasTitle || hasGenre || hasId || hasBy || hasRepost;
   });
 }
 
