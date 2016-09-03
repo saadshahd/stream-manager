@@ -52,6 +52,7 @@ export function parseItem(item) {
   const type = item.type.replace('-repost', '');
   const data = item.track || item.playlist;
   const title = data.title;
+  const genre = data.genre;
   const isRepost = /-repost/.test(item.type);
 
   const trackId = item.uuid;
@@ -68,6 +69,7 @@ export function parseItem(item) {
   return {
     type,
     title,
+    genre,
     trackId,
     trackBy,
     repostBy
@@ -96,6 +98,10 @@ export function deleteFilter(filter) {
   });
 }
 
+function matchTrackGenre(itemModel, filter) {
+  return itemModel.genre === filter.genre;
+}
+
 function matchTrackId(itemModel, filter) {
   return itemModel.trackId === filter.trackId;
 }
@@ -111,12 +117,13 @@ function matchRepostBy(itemModel, filter) {
 export function matchFilter(itemModel) {
   if (!itemModel) return;
 
+  const matchGenre = matchTrackGenre.bind(null, itemModel);
   const matchId = matchTrackId.bind(null, itemModel);
   const matchBy = matchTrackBy.bind(null, itemModel);
   const matchRepost = matchRepostBy.bind(null, itemModel);
 
   return _.find(filters, filter => {
-    return matchId(filter) || matchBy(filter) || matchRepost(filter);
+    return matchGenre(filter) || matchId(filter) || matchBy(filter) || matchRepost(filter);
   });
 }
 
