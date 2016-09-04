@@ -7,6 +7,7 @@ import browserify from 'browserify';
 import babelify from 'babelify';
 import buffer from 'vinyl-buffer';
 import source from 'vinyl-source-stream';
+import * as isparta from 'isparta';
 
 const $ = gulpLoadPlugins();
 
@@ -151,11 +152,25 @@ gulp.task('test', ['test:singleRun'], () => {
   gulp.watch('test/spec.babel/*.js', ['test:singleRun']);
 });
 
-gulp.task('test:singleRun', () => {
-  gulp.src('test/spec/test.js', {read: false})
-    .pipe($.mocha({
-      reporter: 'nyan'
+gulp.task('test:singleRun', ['pre-test'], () => {
+  return gulp.src('test/spec/test.js', {read: false})
+    .pipe($.mocha({reporter: 'landing'}))
+    .pipe($.istanbul.writeReports({
+      dir: './coverage',
+      reporters: ['lcov', 'text-summary'],
+      lcov: {file: 'lcov.info'}
     }));
+});
+
+gulp.task('pre-test', () => {
+  return gulp.src(['app/bundle/*.js'])
+    .pipe($.istanbul({instrumenter: isparta.Instrumenter}))
+    .pipe($.istanbul.hookRequire());
+});
+
+gulp.task('post-test', () => {
+  return gulp.src('coverage/lcov.info')
+    .pipe($.coveralls());
 });
 
 gulp.task('size', () => {
