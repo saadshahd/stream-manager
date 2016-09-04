@@ -39,6 +39,10 @@ gulp.task('lint', lint(['app/scripts.babel/**/*.js', 'app/bundle/**/*.js'], {
   }
 }));
 
+gulp.task('lint:test', lint('test/spec/*.js', {
+  fix: true
+}));
+
 gulp.task('images', () => {
   return gulp.src('app/images/**/*')
     .pipe($.if($.if.isFile, $.cache($.imagemin({
@@ -84,7 +88,7 @@ gulp.task('chromeManifest', () => {
     .pipe(gulp.dest('dist'));
 });
 
-function bundleJsFile({srcPath, fileName} = {}) {
+function bundleJsFile({srcPath, fileName, destPath = 'app/scripts/'} = {}) {
   const b = browserify({
     entries: `${srcPath}/${fileName}`,
     transform: babelify.configure({
@@ -98,7 +102,7 @@ function bundleJsFile({srcPath, fileName} = {}) {
     .pipe(buffer())
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('app/scripts/'));
+    .pipe(gulp.dest(destPath));
 }
 
 gulp.task('babel:scriptsFile', () => {
@@ -141,6 +145,17 @@ gulp.task('watch', ['lint', 'babel', 'html'], () => {
   gulp.watch(['app/scripts.babel/**/*.js', 'app/bundle/**/*.js'], ['lint', 'babel']);
   gulp.watch('bower.json', ['wiredep']);
   gulp.watch('app/styles/**/*.scss', ['sass']);
+});
+
+gulp.task('test', ['test:singleRun'], () => {
+  gulp.watch('test/spec.babel/*.js', ['test:singleRun']);
+});
+
+gulp.task('test:singleRun', () => {
+  gulp.src('test/spec/test.js', {read: false})
+    .pipe($.mocha({
+      reporter: 'nyan'
+    }));
 });
 
 gulp.task('size', () => {
