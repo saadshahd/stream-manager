@@ -36,7 +36,6 @@
     "gulp-zip": "^3.2.0",
     "lodash": "^4.15.0",
     "main-bower-files": "^2.11.1",
-    "mock-browser": "^0.92.12",
     "run-sequence": "^1.1.5",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
