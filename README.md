@@ -1,4 +1,4 @@
-# Stream Manager [![Build Status](https://travis-ci.org/saadshahd/stream-manager.svg?branch=master)](https://travis-ci.org/saadshahd/stream-manager)
+# Stream Manager [![Build Status](https://travis-ci.org/saadshahd/stream-manager.svg?branch=master)](https://travis-ci.org/saadshahd/stream-manager) [![Coverage Status](https://coveralls.io/repos/github/saadshahd/stream-manager/badge.svg?branch=feature%2Fadd-test-coverage)](https://coveralls.io/github/saadshahd/stream-manager?branch=feature%2Fadd-test-coverage)
 **Stream Manager** is your way to clean up [soundcloud](http://soundcloud.com)'s mess.
 
 It lets you disable specific posts so you got a clean stream.
