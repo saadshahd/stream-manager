@@ -68,5 +68,8 @@
   "dependencies": {
     "jquery": "^3.1.0",
     "wolfy87-eventemitter": "^5.1.0"
+  },
+  "scripts": {
+    "test": "gulp test:singleRun"
   }
 }
