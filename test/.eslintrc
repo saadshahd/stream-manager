@@ -2,5 +2,8 @@
   "extends": "xo-space/esnext",
   "env": {
     "mocha": true
+  },
+  "rules": {
+    "no-unused-expressions": 0
   }
 }
