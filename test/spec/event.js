@@ -1,14 +1,16 @@
 import * as Eventer from '../../app/bundle/event';
 import * as chai from 'chai';
 import spies from 'chai-spies';
+import {mocks} from 'mock-browser';
 
 chai.use(spies);
 
 const expect = chai.expect;
+const browser = new mocks.MockBrowser();
 
 export function test() {
   beforeEach(() => {
-    global.window = {};
+    global.window = browser.getWindow();
   });
 
   describe('Event on', () => {
