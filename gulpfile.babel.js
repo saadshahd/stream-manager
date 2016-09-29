@@ -7,6 +7,7 @@ import browserify from 'browserify';
 import babelify from 'babelify';
 import buffer from 'vinyl-buffer';
 import source from 'vinyl-source-stream';
+import _ from 'lodash';
 import * as isparta from 'isparta';
 
 const $ = gulpLoadPlugins();
@@ -89,6 +90,24 @@ gulp.task('chromeManifest', () => {
     .pipe(gulp.dest('dist'));
 });
 
+function exposeRequire(b, path, name) {
+  b.require(`./app/bundle/${path}`, {expose: _.camelCase(name)});
+}
+
+function exposeModule(b, name) {
+  return exposeRequire(b, `modules/${name}`, name);
+}
+
+function exposeFeature(b, name) {
+  const model = `${name}/model`;
+  const view = `${name}/view`;
+  const controller = `${name}/controller`;
+
+  exposeRequire(b, model, model);
+  exposeRequire(b, view, view);
+  exposeRequire(b, controller, name);
+}
+
 function bundleJsFile({srcPath, fileName, destPath = 'app/scripts/'} = {}) {
   const b = browserify({
     entries: `${srcPath}/${fileName}`,
@@ -97,6 +116,11 @@ function bundleJsFile({srcPath, fileName, destPath = 'app/scripts/'} = {}) {
     }),
     debug: true
   });
+
+  exposeModule(b, 'event');
+  exposeModule(b, 'icons');
+  exposeModule(b, 'xhr-proxy');
+  exposeFeature(b, 'disable-enable');
 
   return b.bundle()
     .pipe(source(fileName))
@@ -163,7 +187,7 @@ gulp.task('test:singleRun', ['pre-test'], () => {
 });
 
 gulp.task('pre-test', () => {
-  return gulp.src(['app/bundle/*.js'])
+  return gulp.src(['app/bundle/**/*.js'])
     .pipe($.istanbul({instrumenter: isparta.Instrumenter}))
     .pipe($.istanbul.hookRequire());
 });

@@ -51,10 +51,7 @@
       "browser": true
     },
     "globals": {
-      "chrome": true,
-      "$": true,
-      "_": true,
-      "jQuery": true
+      "chrome": true
     },
     "rules": {
       "babel/new-cap": 0,
