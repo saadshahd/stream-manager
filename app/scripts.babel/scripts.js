@@ -2,7 +2,7 @@ const script = document.createElement('script');
 script.src = chrome.extension.getURL('scripts/main.js');
 (document.head || document.documentElement).appendChild(script);
 
-import * as Eventer from '../bundle/event';
+import * as Eventer from 'event';
 
 script.onload = () => {
   let filters;
